@@ -4,7 +4,7 @@ import { Routes, Route } from 'react-router-dom';
 import './App.css'
 import Home from './Components/Home';
 import Chome from './Subjects/C++/Chome';
-import Jdoodle from './Components/jdoodle';
+import Jdoodle from './Components/Jdoodle';
 import Javascript from './Subjects/JavaScript/Javascript';
 import Signup from './Components/Signup';
 import Login from './Components/Login';
