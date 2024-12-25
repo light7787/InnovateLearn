@@ -12,7 +12,7 @@ const Userinfo = () => {
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        const response = await fetch("http://localhost:4000/api/", {
+        const response = await fetch("https://innovate-learn-v1ki.vercel.app/api/", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

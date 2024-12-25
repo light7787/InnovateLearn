@@ -31,7 +31,7 @@ const Result = ({ score, totalQuestions, resetQuiz,difficulty }) => {
     }
 
     try {
-      const response = await fetch("http://localhost:4000/api/addbadge", {
+      const response = await fetch("https://innovate-learn-v1ki.vercel.app/api/addbadge", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
