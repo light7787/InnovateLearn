@@ -8,7 +8,12 @@ const app = express();
 
 // Middleware
 app.use(express.json());
-app.use(cors({ origin: 'https://innovate-learn.vercel.app/' }));
+app.use(cors({
+  origin: 'https://innovate-learn.vercel.app', // Allow only your frontend
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
+  credentials: true // Allow cookies, if needed
+}));
+
 
 // Routes
 app.use('/api', userRoutes);
