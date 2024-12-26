@@ -13,7 +13,7 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
   credentials: true // Allow cookies, if needed
 }));
-
+app.options('*', cors()); // Allow preflight requests
 
 // Routes
 app.use('/api', userRoutes);
