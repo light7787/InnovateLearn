@@ -1,0 +1,187 @@
+[
+ 
+    {
+        "title": "Binary Tree Inorder Traversal",
+        "difficulty": "Easy",
+        "category": "Tree",
+        "link": "https://leetcode.com/problems/binary-tree-inorder-traversal/"
+    },
+    {
+        "title": "Maximum Depth of Binary Tree",
+        "difficulty": "Easy",
+        "category": "Tree",
+        "link": "https://leetcode.com/problems/maximum-depth-of-binary-tree/"
+    },
+    {
+        "title": "Symmetric Tree",
+        "difficulty": "Easy",
+        "category": "Tree",
+        "link": "https://leetcode.com/problems/symmetric-tree/"
+    },
+    {
+        "title": "Balanced Binary Tree",
+        "difficulty": "Easy",
+        "category": "Tree",
+        "link": "https://leetcode.com/problems/balanced-binary-tree/"
+    },
+    {
+        "title": "Path Sum",
+        "difficulty": "Easy",
+        "category": "Tree",
+        "link": "https://leetcode.com/problems/path-sum/"
+    },
+    {
+        "title": "Construct Binary Tree from Preorder and Inorder Traversal",
+        "difficulty": "Medium",
+        "category": "Tree",
+        "link": "https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/"
+    },
+    {
+        "title": "Lowest Common Ancestor of a Binary Tree",
+        "difficulty": "Medium",
+        "category": "Tree",
+        "link": "https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/"
+    },
+    {
+        "title": "Binary Tree Level Order Traversal",
+        "difficulty": "Medium",
+        "category": "Tree",
+        "link": "https://leetcode.com/problems/binary-tree-level-order-traversal/"
+    },
+    {
+        "title": "Binary Search Tree Iterator",
+        "difficulty": "Medium",
+        "category": "Tree",
+        "link": "https://leetcode.com/problems/binary-search-tree-iterator/"
+    },
+    {
+        "title": "Serialize and Deserialize Binary Tree",
+        "difficulty": "Hard",
+        "category": "Tree",
+        "link": "https://leetcode.com/problems/serialize-and-deserialize-binary-tree/"
+    },
+
+ 
+    {
+        "title": "Kth Largest Element in an Array",
+        "difficulty": "Medium",
+        "category": "Heap",
+        "link": "https://leetcode.com/problems/kth-largest-element-in-an-array/"
+    },
+    {
+        "title": "Top K Frequent Elements",
+        "difficulty": "Medium",
+        "category": "Heap",
+        "link": "https://leetcode.com/problems/top-k-frequent-elements/"
+    },
+    {
+        "title": "Merge K Sorted Lists",
+        "difficulty": "Hard",
+        "category": "Heap",
+        "link": "https://leetcode.com/problems/merge-k-sorted-lists/"
+    },
+    {
+        "title": "Find Median from Data Stream",
+        "difficulty": "Hard",
+        "category": "Heap",
+        "link": "https://leetcode.com/problems/find-median-from-data-stream/"
+    },
+    {
+        "title": "K Closest Points to Origin",
+        "difficulty": "Medium",
+        "category": "Heap",
+        "link": "https://leetcode.com/problems/k-closest-points-to-origin/"
+    },
+    {
+        "title": "Last Stone Weight",
+        "difficulty": "Easy",
+        "category": "Heap",
+        "link": "https://leetcode.com/problems/last-stone-weight/"
+    },
+    {
+        "title": "Reorganize String",
+        "difficulty": "Medium",
+        "category": "Heap",
+        "link": "https://leetcode.com/problems/reorganize-string/"
+    },
+    {
+        "title": "Merge Interval",
+        "difficulty": "Medium",
+        "category": "Heap",
+        "link": "https://leetcode.com/problems/merge-intervals/"
+    },
+    {
+        "title": "Smallest Range Covering Elements from K Lists",
+        "difficulty": "Hard",
+        "category": "Heap",
+        "link": "https://leetcode.com/problems/smallest-range-covering-elements-from-k-lists/"
+    },
+    {
+        "title": "Sliding Window Maximum",
+        "difficulty": "Hard",
+        "category": "Heap",
+        "link": "https://leetcode.com/problems/sliding-window-maximum/"
+    },
+
+
+    {
+        "title": "Permutations",
+        "difficulty": "Medium",
+        "category": "Backtracking",
+        "link": "https://leetcode.com/problems/permutations/"
+    },
+    {
+        "title": "Combination Sum",
+        "difficulty": "Medium",
+        "category": "Backtracking",
+        "link": "https://leetcode.com/problems/combination-sum/"
+    },
+    {
+        "title": "Subsets",
+        "difficulty": "Medium",
+        "category": "Backtracking",
+        "link": "https://leetcode.com/problems/subsets/"
+    },
+    {
+        "title": "Letter Combinations of a Phone Number",
+        "difficulty": "Medium",
+        "category": "Backtracking",
+        "link": "https://leetcode.com/problems/letter-combinations-of-a-phone-number/"
+    },
+    {
+        "title": "Word Search II",
+        "difficulty": "Hard",
+        "category": "Backtracking",
+        "link": "https://leetcode.com/problems/word-search-ii/"
+    },
+    {
+        "title": "N-Queens",
+        "difficulty": "Hard",
+        "category": "Backtracking",
+        "link": "https://leetcode.com/problems/n-queens/"
+    },
+    {
+        "title": "Combination Sum II",
+        "difficulty": "Medium",
+        "category": "Backtracking",
+        "link": "https://leetcode.com/problems/combination-sum-ii/"
+    },
+    {
+        "title": "Partition Equal Subset Sum",
+        "difficulty": "Medium",
+        "category": "Backtracking",
+        "link": "https://leetcode.com/problems/partition-equal-subset-sum/"
+    },
+    {
+        "title": "Sudoku Solver",
+        "difficulty": "Hard",
+        "category": "Backtracking",
+        "link": "https://leetcode.com/problems/sudoku-solver/"
+    },
+    {
+        "title": "Restore IP Addresses",
+        "difficulty": "Medium",
+        "category": "Backtracking",
+        "link": "https://leetcode.com/problems/restore-ip-addresses/"
+    }
+]
