@@ -24,7 +24,7 @@ const PORT = process.env.PORT || 4000; // Default to 4000 if PORT is not set in 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('Connected to MongoDB');
-    app.listen(4000, () => {
+    app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
   })
