@@ -8,7 +8,6 @@ const Result = ({ score, totalQuestions, resetQuiz,difficulty }) => {
   const email = user ? user.email : null;  // Extract email from the user object
 
 
-
   useEffect(() => {
     if (score > 2) {
       addBadgeToUser();
@@ -31,7 +30,7 @@ const Result = ({ score, totalQuestions, resetQuiz,difficulty }) => {
     }
 
     try {
-      const response = await fetch("/api/addbadge", {
+      const response = await fetch("https://innovate-learn-v1ki.vercel.app/api/addbadge", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
