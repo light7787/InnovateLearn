@@ -14,7 +14,7 @@ export const useSignup = () => {
 
     try {
       // Send POST request to API
-      const response = await fetch('/api/signup', {
+      const response = await fetch('https://innovate-learn-v1ki.vercel.app/api/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }), // Send email & password as JSON
