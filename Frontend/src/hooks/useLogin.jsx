@@ -14,7 +14,7 @@ export const useLogin = () => {
         setError(null);
 
         try {
-            const response = await fetch('/api/login', {
+            const response = await fetch('https://innovate-learn-v1ki.vercel.app/api/login', {
                 method: 'POST',credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
