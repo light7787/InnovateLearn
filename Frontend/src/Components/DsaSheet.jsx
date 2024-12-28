@@ -32,12 +32,12 @@ const DsaSheet = () => {
   useEffect(() => {
     const fetchQuestionsAndUser = async () => {
       try {
-        const questionsResponse = await fetch('/api/ques/questions');
+        const questionsResponse = await fetch('https://innovate-learn-v1ki.vercel.app/api/ques/questions');
         const questionsData = await questionsResponse.json();
         setQuestions(questionsData.questions || []);
 
         if (user) {
-          const userResponse = await fetch(`/api/${user}`);
+          const userResponse = await fetch(`https://innovate-learn-v1ki.vercel.app/api/${user}`);
           const userData = await userResponse.json();
           setUserCompletedQuestions(userData.questions || []);
         }
@@ -53,8 +53,8 @@ const DsaSheet = () => {
 
   const handleQuestionStatus = async (questionId, isCompleted) => {
     const url = isCompleted
-      ? '/api/removequestion'
-      : '/api/addquestion';
+      ? 'https://innovate-learn-v1ki.vercel.app/api/removequestion'
+      : 'https://innovate-learn-v1ki.vercel.app/api/addquestion';
 
     try {
       const response = await fetch(url, {
