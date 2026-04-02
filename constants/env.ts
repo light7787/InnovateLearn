@@ -8,7 +8,4 @@ const {
 
 export const ENV = ENVIRONMENT;
 
-export const API_BASE =
-  ENV === 'dev'
-    ? API_URL_DEV
-    : API_URL ?? 'https://dev.ps.rideriver.com';
+export const API_BASE ='http://dev.dms.ps.rideriver.com';

@@ -9,14 +9,20 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.rideriver.RiverCrew"
+      "bundleIdentifier": "com.rideriver.RiverCrew",
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.rideriver.RiverCrew"
+      "package": "com.rideriver.RiverCrew",
+      "usesCleartextTraffic": true
     },
     "web": {
       "bundler": "metro",

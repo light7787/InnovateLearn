@@ -22,16 +22,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getValidAccessToken } from '../auth/auth.service';
 import ConfirmationPopup from '@/app/components/confirmationmodal';
 import { API_BASE, ENV } from '@/constants/env';
+import {
+  getFollowUpHistory,
+  FollowUpHistoryItem,
+  FollowUpType
+} from '../services/followupHistory.service';
  
 type LeadTemperature = 'Hot' | 'Warm' | 'Cold';
-type FollowUpType = 'Reschedule TR Call' | 'Schedule TR Call' | 'Booking Call';
+
  
-interface FollowUpHistoryItem {
-  FollowUpId: string;
-  Remark__c: string;
-  DateTime__c: string; // or use `CreatedDate`, etc.
-  Type__c: FollowUpType;
-}
+
  
 // Helper function to format follow-up history date and time
 const formatFollowUpHistoryDateTime = (dateTimeString: string | null) => {
@@ -88,8 +88,8 @@ const FollowUpDetailsScreen: React.FC = () => {
   const upcomingFollowUpDate = (params.upcomingFollowUpDate as string) || '10 May';
   const upcomingFollowUpTime = (params.upcomingFollowUpTime as string) || '10:30 AM';
   const followUpType = (params.followUpType as FollowUpType) || 'Booking Call';
-  const followupList = params.followupList ? JSON.parse(params.followupList as string) : [];
-   ENV === 'dev'&&console.log(followupList)
+ 
+ 
   // Log the IDs for debugging
    ENV === 'dev'&&console.log('FollowUp Details - leadId:', leadId, 'followupId:', followupId);
  
@@ -121,26 +121,20 @@ const FollowUpDetailsScreen: React.FC = () => {
  
 // In FollowUpDetailsScreen.tsx, update the useEffect that maps followupList:
  
-useEffect(() => {
-  if (!Array.isArray(followupList)) return;
+
  
-  const mapped: FollowUpHistoryItem[] = followupList.map((item: any, index: number) => ({
-    FollowUpId: item.FollowUpId || item.Id || `item-${index}`,
-    Remark__c: item.Feedback || item.Feedback__c || '-', // Map Feedback to Remark__c
-    DateTime__c: item.FollowUpDate || item.Follow_Up_Date__c || '', // Map FollowUpDate to DateTime__c
-    Type__c: item.FollowUpType || item.FollowUpType__c || 'Booking Call', // Map FollowUpType to Type__c
-  }));
+
  
-  setFollowUpHistory(prev => {
-    const prevString = JSON.stringify(prev);
-    const newString = JSON.stringify(mapped);
-    if (prevString === newString) return prev;
-     ENV === 'dev'&&console.log('📚 Updating follow-up history:', mapped);
-    return mapped;
-  });
-}, [followupList]);
- 
- 
+ useEffect(() => {
+  if (!leadId) return;
+
+  const loadHistory = async () => {
+    const history = await getFollowUpHistory(leadId);
+    setFollowUpHistory(history);
+  };
+
+  loadHistory();
+}, [leadId]);
   // API call to update follow-up temperature/rating
   const updateFollowUpRating = async (newTemperature: LeadTemperature) => {
     if (!userId || !followupId) {
@@ -569,10 +563,10 @@ useEffect(() => {
             {followUpHistory.length > 0 ? (
               followUpHistory.map((item) => {
                 // Format the date and time for display
-                const { combined: formattedDateTime } = formatFollowUpHistoryDateTime(item.DateTime__c);
+                const { combined: formattedDateTime } = formatFollowUpHistoryDateTime(item.dateTime);
                
                 return (
-                  <View key={item.FollowUpId} className="bg-river-blue-2 rounded-2xl p-4 mb-4">
+                  <View key={item.id} className="bg-river-blue-2 rounded-2xl p-4 mb-4">
                     <Text style={Typography.copy1} className="text-river-blue-6 mb-4">
                       {leadName}
                     </Text>
@@ -582,7 +576,7 @@ useEffect(() => {
                     <View className="flex-row justify-between items-center mb-4">
                       <View className="flex-1 items-center">
                         <Text style={Typography.headline6B} className="text-river-blue-6 text-center mb-1">
-                          {item.Remark__c}
+                          {item.remark}
                         </Text>
                         <Text style={Typography.copy2} className="text-river-blue-5 text-center">
                           Last Follow-Up Remark
@@ -607,10 +601,10 @@ useEffect(() => {
                       </Text>
                       <View
                         className="px-4 py-1 rounded-full"
-                        style={{ backgroundColor: getFollowUpTypeColor(item.Type__c) }}
+                        style={{ backgroundColor: getFollowUpTypeColor(item.type) }}
                       >
                         <Text style={[Typography.subline2, { color: '#f7fbfd' }]}>
-                          {item.Type__c}
+                          {item.type}
                         </Text>
                       </View>
                     </View>

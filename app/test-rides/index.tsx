@@ -20,6 +20,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { performUnifiedSearch } from '@/app/components/TestRide/globalSearch';
 import { RelativePathString } from 'expo-router';
 import { useTimeFilter } from '../timefiltercontext';
+import { getLeadList } from '../services/leadList.service';
 
 
 
@@ -489,185 +490,222 @@ const TestRide = () => {
   };
 
   // Fetch test rides function
-  const fetchTestRides = useCallback(async (isRefresh = false) => {
-    try {
-      if (isRefresh) {
-        setRefreshing(true);
-        await invalidateTestRideCache();
-      } else {
-        setLoading(true);
-      }
+  // const fetchTestRides = useCallback(async (isRefresh = false) => {
+  //   try {
+  //     if (isRefresh) {
+  //       setRefreshing(true);
+  //       await invalidateTestRideCache();
+  //     } else {
+  //       setLoading(true);
+  //     }
 
-      const token = await getValidAccessToken();
-      const userProfile = await AsyncStorage.getItem('userProfile');
-      if (!userProfile) throw new Error('User profile missing');
+  //     const token = await getValidAccessToken();
+  //     const userProfile = await AsyncStorage.getItem('userProfile');
+  //     if (!userProfile) throw new Error('User profile missing');
 
-      const { UserId } = JSON.parse(userProfile);
+  //     const { UserId } = JSON.parse(userProfile);
 
-      // If we're in search mode and have preloaded data, use it instead of fetching
-      if (isSearchMode && preloadedData.length > 0 && !isRefresh) {
-         ENV === 'dev'&&console.log('[🔍 TEST RIDE] Using preloaded search data');
-        setTestRides(preloadedData);
-        setLoading(false);
-        return;
-      }
+  //     // If we're in search mode and have preloaded data, use it instead of fetching
+  //     if (isSearchMode && preloadedData.length > 0 && !isRefresh) {
+  //        ENV === 'dev'&&console.log('[🔍 TEST RIDE] Using preloaded search data');
+  //       setTestRides(preloadedData);
+  //       setLoading(false);
+  //       return;
+  //     }
 
-      // If we're in search mode but don't have preloaded data, don't fetch with date filters
-      if (isSearchMode && !isRefresh) {
-         ENV === 'dev'&&console.log('[🔍 TEST RIDE] In search mode but no preloaded data, skipping fetch');
-        setTestRides([]);
-        setLoading(false);
-        return;
-      }
+  //     // If we're in search mode but don't have preloaded data, don't fetch with date filters
+  //     if (isSearchMode && !isRefresh) {
+  //        ENV === 'dev'&&console.log('[🔍 TEST RIDE] In search mode but no preloaded data, skipping fetch');
+  //       setTestRides([]);
+  //       setLoading(false);
+  //       return;
+  //     }
 
-      const payload: any = { UserId };
+  //     const payload: any = { UserId };
 
-      // Only apply date filtering when NOT in search mode
-      if (!isSearchMode) {
-        if (filter === 'Custom' && dateRange) {
-          if (dateRange.specificDate) {
-            payload.FilterDate = dateRange.specificDate;
-          } else if (dateRange.startDate && dateRange.endDate) {
-            payload.FilterDate = dateRange.startDate;
-            payload.FilterEndRange = dateRange.endDate;
-          } else {
-            throw new Error('Invalid custom date range');
-          }
-        } else {
-          payload.FilterDate = filter.toUpperCase();
-        }
-      } else {
-        // For search mode, use expanded date range
-        const today = new Date();
-        const oneYearBefore = new Date(today);
-        oneYearBefore.setFullYear(today.getFullYear() - 1);
+  //     // Only apply date filtering when NOT in search mode
+  //     if (!isSearchMode) {
+  //       if (filter === 'Custom' && dateRange) {
+  //         if (dateRange.specificDate) {
+  //           payload.FilterDate = dateRange.specificDate;
+  //         } else if (dateRange.startDate && dateRange.endDate) {
+  //           payload.FilterDate = dateRange.startDate;
+  //           payload.FilterEndRange = dateRange.endDate;
+  //         } else {
+  //           throw new Error('Invalid custom date range');
+  //         }
+  //       } else {
+  //         payload.FilterDate = filter.toUpperCase();
+  //       }
+  //     } else {
+  //       // For search mode, use expanded date range
+  //       const today = new Date();
+  //       const oneYearBefore = new Date(today);
+  //       oneYearBefore.setFullYear(today.getFullYear() - 1);
         
-        const oneYearAfter = new Date(today);
-        oneYearAfter.setFullYear(today.getFullYear() + 1);
+  //       const oneYearAfter = new Date(today);
+  //       oneYearAfter.setFullYear(today.getFullYear() + 1);
         
-        payload.FilterDate = oneYearBefore.toISOString().split('T')[0];
-        payload.FilterEndRange = oneYearAfter.toISOString().split('T')[0];
-      }
+  //       payload.FilterDate = oneYearBefore.toISOString().split('T')[0];
+  //       payload.FilterEndRange = oneYearAfter.toISOString().split('T')[0];
+  //     }
       
-       ENV === 'dev'&&console.log('[📊 TEST RIDES] Sending payload', payload);
+  //      ENV === 'dev'&&console.log('[📊 TEST RIDES] Sending payload', payload);
       
-      const res = await fetch(`${API_BASE}/api/data/EventTestDrive`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+  //     const res = await fetch(`${API_BASE}/api/data/EventTestDrive`, {
+  //       method: 'POST',
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify(payload),
+  //     });
 
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(`API failed: ${errText}`);
-      }
+  //     if (!res.ok) {
+  //       const errText = await res.text();
+  //       throw new Error(`API failed: ${errText}`);
+  //     }
 
-      const json = await res.json();
-       ENV === 'dev'&&console.log('🔄 Test Ride API response:', json, res.status, res.statusText);
+  //     const json = await res.json();
+  //      ENV === 'dev'&&console.log('🔄 Test Ride API response:', json, res.status, res.statusText);
       
-      const apiData = json?.Data || [];
+  //     const apiData = json?.Data || [];
       
-      let metaData: { TestDriveStatuses: any; TestDriveRideType: any; } | null = null;
-      let ridesArray = [];
+  //     let metaData: { TestDriveStatuses: any; TestDriveRideType: any; } | null = null;
+  //     let ridesArray = [];
       
-      if (Array.isArray(apiData) && apiData.length > 0) {
-        const metaIndex = apiData.findIndex(item => item.TestDriveStatuses);
+  //     if (Array.isArray(apiData) && apiData.length > 0) {
+  //       const metaIndex = apiData.findIndex(item => item.TestDriveStatuses);
         
-        if (metaIndex !== -1) {
-          metaData = apiData[metaIndex];
-          ridesArray = apiData.filter((_, index) => index !== metaIndex);
-        } else {
-          ridesArray = apiData;
-        }
-      }
+  //       if (metaIndex !== -1) {
+  //         metaData = apiData[metaIndex];
+  //         ridesArray = apiData.filter((_, index) => index !== metaIndex);
+  //       } else {
+  //         ridesArray = apiData;
+  //       }
+  //     }
 
-      setStatusOptions(metaData?.TestDriveStatuses || []);
+  //     setStatusOptions(metaData?.TestDriveStatuses || []);
       
-      const normalized = ridesArray
-        .filter((item) => {
-          return item && (item.LeadName || item.TestDriveId) && !item.TestDriveStatuses;
-        })
-        .map((item) => {
-          let date = 'N/A';
-          let time = 'N/A';
-          let originalScheduleDateTime = item.ScheduleDateTime;
-          let extractedPostalCode = '';
+  //     const normalized = ridesArray
+  //       .filter((item) => {
+  //         return item && (item.LeadName || item.TestDriveId) && !item.TestDriveStatuses;
+  //       })
+  //       .map((item) => {
+  //         let date = 'N/A';
+  //         let time = 'N/A';
+  //         let originalScheduleDateTime = item.ScheduleDateTime;
+  //         let extractedPostalCode = '';
           
-          if (item.ScheduleDateTime) {
-            if (typeof item.ScheduleDateTime === 'string') {
-              if (item.ScheduleDateTime.includes('T')) {
-                const [d, t] = item.ScheduleDateTime.split('T');
-                date = formatDate(d) || 'N/A';
-                time = t ? formatTime(item.ScheduleDateTime, 'Store Test Ride') : 'N/A';
-              } else {
-                date = formatDate(item.ScheduleDateTime) || 'N/A';
-              }
-            }
-          }
+  //         if (item.ScheduleDateTime) {
+  //           if (typeof item.ScheduleDateTime === 'string') {
+  //             if (item.ScheduleDateTime.includes('T')) {
+  //               const [d, t] = item.ScheduleDateTime.split('T');
+  //               date = formatDate(d) || 'N/A';
+  //               time = t ? formatTime(item.ScheduleDateTime, 'Store Test Ride') : 'N/A';
+  //             } else {
+  //               date = formatDate(item.ScheduleDateTime) || 'N/A';
+  //             }
+  //           }
+  //         }
 
-          let testRideType: TestRideType = item?.RideType === 'STR' 
-            ? 'Store Test Ride' 
-            : 'Home Test Ride';
+  //         let testRideType: TestRideType = item?.RideType === 'STR' 
+  //           ? 'Store Test Ride' 
+  //           : 'Home Test Ride';
 
-          if (item.ScheduleDateTime && testRideType === 'Home Test Ride') {
-            time = formatTime(item.ScheduleDateTime, testRideType);
-          }
+  //         if (item.ScheduleDateTime && testRideType === 'Home Test Ride') {
+  //           time = formatTime(item.ScheduleDateTime, testRideType);
+  //         }
           
-          let address = 'Address not available';
-          if (item.Address && typeof item.Address === 'object') {
-            extractedPostalCode = item.Address.postalCode || '';
-            const addressParts = [];
-            if (item.Address.street) addressParts.push(item.Address.street);
-            if (addressParts.length > 0) {
-              address = addressParts.join(', ');
-            }
-          }
+  //         let address = 'Address not available';
+  //         if (item.Address && typeof item.Address === 'object') {
+  //           extractedPostalCode = item.Address.postalCode || '';
+  //           const addressParts = [];
+  //           if (item.Address.street) addressParts.push(item.Address.street);
+  //           if (addressParts.length > 0) {
+  //             address = addressParts.join(', ');
+  //           }
+  //         }
 
-          let displayStatus = normalizeStatus(item.TestStatus || 'Scheduled');
+  //         let displayStatus = normalizeStatus(item.TestStatus || 'Scheduled');
           
-          return {
-            id: item.TestDriveId || `temp_${Date.now()}_${Math.random()}`,
-            leadId: item.LeadId,
-            leadname: item.LeadName || 'Unknown Lead',
-            phoneNumber: item.LeadPhone || 'N/A',
-            testRideType,
-            scheduledDate: date,
-            scheduledTime: time,
-            address,
-            testRideStatus: displayStatus,
-            originalStatus: item.TestStatus || 'Scheduled',
-            originalScheduleDateTime,
-            postalCode: extractedPostalCode,
-          };
-        })
-        .filter((ride) => {
-          const originalStatus = ride.originalStatus;
+  //         return {
+  //           id: item.TestDriveId || `temp_${Date.now()}_${Math.random()}`,
+  //           leadId: item.LeadId,
+  //           leadname: item.LeadName || 'Unknown Lead',
+  //           phoneNumber: item.LeadPhone || 'N/A',
+  //           testRideType,
+  //           scheduledDate: date,
+  //           scheduledTime: time,
+  //           address,
+  //           testRideStatus: displayStatus,
+  //           originalStatus: item.TestStatus || 'Scheduled',
+  //           originalScheduleDateTime,
+  //           postalCode: extractedPostalCode,
+  //         };
+  //       })
+  //       .filter((ride) => {
+  //         const originalStatus = ride.originalStatus;
           
-          if (originalStatus === 'Test Ride Confirmed') return true;
-          if (originalStatus === 'Scheduled' || originalStatus === 'On-Going') return true;
-          if (originalStatus === 'Reschedule') return true;
+  //         if (originalStatus === 'Test Ride Confirmed') return true;
+  //         if (originalStatus === 'Scheduled' || originalStatus === 'On-Going') return true;
+  //         if (originalStatus === 'Reschedule') return true;
           
-          return false;
-        });
+  //         return false;
+  //       });
 
-       ENV === 'dev'&&console.log('🔍 Normalized and filtered test rides:', normalized);
-      setTestRides(normalized);
+  //      ENV === 'dev'&&console.log('🔍 Normalized and filtered test rides:', normalized);
+  //     setTestRides(normalized);
       
-      if (isRefresh) {
-         ENV === 'dev'&&console.log('✅ Test rides refreshed successfully');
-      }
-    } catch (err) {
-       ENV === 'dev'&&console.error('❌ Failed to fetch test rides:', err);
-      setTestRides([]);
-    } finally {
-      handleLastsync();
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [filter, dateRange, isSearchMode, preloadedData]);
+  //     if (isRefresh) {
+  //        ENV === 'dev'&&console.log('✅ Test rides refreshed successfully');
+  //     }
+  //   } catch (err) {
+  //      ENV === 'dev'&&console.error('❌ Failed to fetch test rides:', err);
+  //     setTestRides([]);
+  //   } finally {
+  //     handleLastsync();
+  //     setLoading(false);
+  //     setRefreshing(false);
+  //   }
+  // }, [filter, dateRange, isSearchMode, preloadedData]);
+
+const fetchTestRides = useCallback(async (isRefresh = false) => {
+  try {
+    setLoading(true);
+
+    const records = await getLeadList({
+      listType: 'T',
+      filterType: filter.toUpperCase(),
+    });
+
+    const mapped = records
+      .filter((r: any) => r.testRide)
+      .map((r: any) => ({
+        id: r.opportunityNo,
+        leadId: r.opportunityNo,
+        leadname: r.customerName,
+        phoneNumber: r.phoneNo,
+        testRideType:
+          r.testRide.testRideType === 'HTR'
+            ? 'Home Test Ride'
+            : 'Store Test Ride',
+        scheduledDate: r.testRide.testRideDate || 'N/A',
+        scheduledTime: r.testRide.scheduledTestRideSlot || 'N/A',
+        address: r.testRide.testRideAddress || '',
+        testRideStatus: r.testRide.testRideStatus || 'Scheduled',
+        postalCode: '',
+      }));
+
+    setTestRides(mapped);
+
+  } catch (err) {
+    console.error(err);
+    setTestRides([]);
+  } finally {
+    setLoading(false);
+  }
+}, [filter]);
 
   // Pull to refresh handler
   const onRefresh = useCallback(() => {

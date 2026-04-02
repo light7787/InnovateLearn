@@ -29,6 +29,7 @@ import { useTimeFilter } from '../timefiltercontext';
 // Import global search function
 import { performUnifiedSearch } from '@/app/components/TestRide/globalSearch';
 import { RelativePathString } from 'expo-router';
+import { getLeadList } from '../services/leadList.service';
 
 type LeadTemperature = 'Hot' | 'Warm' | 'Cold';
 type OrderStatus = 'Booking Call' | 'Schedule TR Call' | 'Reschedule TR Call';
@@ -395,95 +396,175 @@ const AllFollowups = () => {
   };
 
   // Separate fetch function that accepts filter parameters
-  const fetchFollowupsWithFilter = async (filterValue: string, dateRangeValue: DateRange | undefined, isRefresh = false) => {
-    try {
-      if (isRefresh) {
-        setRefreshing(true);
-        await invalidateFollowupCache();
-      } else {
-        setLoading(true);
-      }
+  // const fetchFollowupsWithFilter = async (filterValue: string, dateRangeValue: DateRange | undefined, isRefresh = false) => {
+  //   try {
+  //     if (isRefresh) {
+  //       setRefreshing(true);
+  //       await invalidateFollowupCache();
+  //     } else {
+  //       setLoading(true);
+  //     }
 
-      const token = await getValidAccessToken();
-      const userProfile = await AsyncStorage.getItem('userProfile');
-      if (!userProfile) throw new Error('User profile missing');
+  //     const token = await getValidAccessToken();
+  //     const userProfile = await AsyncStorage.getItem('userProfile');
+  //     if (!userProfile) throw new Error('User profile missing');
 
-      const { UserId } = JSON.parse(userProfile);
+  //     const { UserId } = JSON.parse(userProfile);
 
-      const payload: any = { UserId };
+  //     const payload: any = { UserId };
 
-      // Apply date filtering based on provided parameters
-      if (filterValue === 'Custom' && dateRangeValue) {
-        if (dateRangeValue.specificDate) {
-          payload.FilterDate = dateRangeValue.specificDate;
-        } else if (dateRangeValue.startDate && dateRangeValue.endDate) {
-          payload.FilterDate = dateRangeValue.startDate;
-          payload.FilterEndRange = dateRangeValue.endDate;
-        } else {
-          throw new Error('Invalid custom date range');
-        }
-      } else {
-        payload.FilterDate = filterValue.toUpperCase();
-      }
+  //     // Apply date filtering based on provided parameters
+  //     if (filterValue === 'Custom' && dateRangeValue) {
+  //       if (dateRangeValue.specificDate) {
+  //         payload.FilterDate = dateRangeValue.specificDate;
+  //       } else if (dateRangeValue.startDate && dateRangeValue.endDate) {
+  //         payload.FilterDate = dateRangeValue.startDate;
+  //         payload.FilterEndRange = dateRangeValue.endDate;
+  //       } else {
+  //         throw new Error('Invalid custom date range');
+  //       }
+  //     } else {
+  //       payload.FilterDate = filterValue.toUpperCase();
+  //     }
 
-      const res = await fetch(`${API_BASE}/api/data/EventFollowUp`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
+  //     const res = await fetch(`${API_BASE}/api/data/EventFollowUp`, {
+  //       method: 'POST',
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify(payload),
+  //     });
+
+  //     if (!res.ok) {
+  //       const errText = await res.text();
+  //       throw new Error(`API failed: ${errText}`);
+  //     }
+
+  //     const json = await res.json();
+  //      ENV === 'dev'&&console.log('🔄 Follow-up API response:', json, res.status, res.statusText);
+
+  // const normalized: FollowupData[] = records
+  // .filter((r: any) => r.followUp)
+  // .map((r: any) => {
+  //   const follow = r.followUp;
+
+  //   const { date, time, rawDate } = formatFollowUpDateTime(
+  //     follow?.nextFollowUpDate
+  //   );
+
+  //   // 🔥 SAFER temperature mapping
+  //   const temperatureMap: any = {
+  //     HOT: 'Hot',
+  //     WARM: 'Warm',
+  //     COLD: 'Cold',
+  //   };
+
+  //   return {
+  //     leadId: r.opportunityNo,
+  //     followupId: r.opportunityNo,
+  //     leadName: r.customerName,
+  //     phoneNumber: r.phoneNo,
+
+  //     // ✅ use opportunityType
+  //     Rating: temperatureMap[r.opportunityType] || 'Cold',
+
+  //     // 🔥 TEMP until backend fixes
+  //     followUpCount: 1,
+
+  //     lastFollowUpRemark: follow?.lastFollowUpRemark || '-',
+
+  //     upcomingFollowUpDate: date,
+  //     upcomingFollowUpTime: time,
+
+  //     // 🔥 TEMP
+  //     followUpType: 'Booking Call',
+  //     FollowUpStatus: r.opportunityType || 'WARM',
+
+  //     followUpList: [],
+  //     rawFollowUpDate: rawDate,
+  //   };
+  // });
+
+  //     const sortedNormalized = sortFollowupsByDateTime(normalized);
+  //     setFollowupData(sortedNormalized);
+      
+  //     if (isRefresh) {
+  //        ENV === 'dev'&&console.log('✅ Follow-ups refreshed successfully');
+  //     }
+  //   } catch (err) {
+  //      ENV === 'dev'&&console.error('❌ Failed to fetch followups:', err);
+  //     setFollowupData([]);
+  //   } finally {
+  //     handleLastsync();
+  //     setLoading(false);
+  //     setRefreshing(false);
+  //   }
+  // };
+const fetchFollowupsWithFilter = async (
+  filterValue: string,
+  dateRangeValue: DateRange | undefined,
+  isRefresh = false
+) => {
+  try {
+    if (isRefresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
+
+    const records = await getLeadList({
+      listType: 'F', // 👈 FOLLOWUP
+      filterType: filterValue.toUpperCase(),
+    });
+
+    const normalized: FollowupData[] = records
+      .filter((r: any) => r.followUp) // 👈 only followups
+      .map((r: any) => {
+        const follow = r.followUp;
+
+        const { date, time, rawDate } = formatFollowUpDateTime(
+          follow.nextFollowUpDate
+        );
+
+        return {
+          leadId: r.opportunityNo,
+          followupId: r.opportunityNo,
+          leadName: r.customerName,
+          followUpCount: 1, // dummy (API doesn’t give)
+          phoneNumber: r.phoneNo,
+          Rating:
+            r.opportunityType === 'HOT'
+              ? 'Hot'
+              : r.opportunityType === 'WARM'
+              ? 'Warm'
+              : 'Cold',
+
+          lastFollowUpRemark: follow.lastFollowUpRemark || '-',
+
+          upcomingFollowUpDate: date,
+          upcomingFollowUpTime: time,
+
+          followUpType: 'Booking Call', // dummy mapping
+          FollowUpStatus: r.opportunityType,
+
+          followUpList: [],
+          rawFollowUpDate: rawDate,
+        };
       });
 
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(`API failed: ${errText}`);
-      }
+    const sorted = sortFollowupsByDateTime(normalized);
+    setFollowupData(sorted);
 
-      const json = await res.json();
-       ENV === 'dev'&&console.log('🔄 Follow-up API response:', json, res.status, res.statusText);
-
-      const normalized: FollowupData[] = (json?.Data || [])
-        .filter((item: any) => item?.LeadName && item?.LeadPhone)
-        .map((item: any) => {
-          const followUpDateTime = item.NextFollowUp || item.FollowUpDate;
-          const { date, time, rawDate } = formatFollowUpDateTime(followUpDateTime);
-
-          return {
-            leadId: item.LeadId,
-            followupId: item.FollowUpId,
-            leadName: item.LeadName || 'N/A',
-            followUpCount: item.FollowUpCount || 0,
-            phoneNumber: item.LeadPhone || '',
-            Rating: item.Rating || 'Hot',
-            lastFollowUpRemark: item.Feedback || '-',
-            upcomingFollowUpDate: date,
-            upcomingFollowUpTime: time,
-            followUpType: item.FollowUpType || 'Booking Call',
-            FollowUpStatus: item.FollowUpStatus,
-            followUpList: (item.followUpListOpp || []).filter(
-              (f: any) => f.Opportunity__c === item.LeadId
-            ),
-            rawFollowUpDate: rawDate,
-          };
-        });
-
-      const sortedNormalized = sortFollowupsByDateTime(normalized);
-      setFollowupData(sortedNormalized);
-      
-      if (isRefresh) {
-         ENV === 'dev'&&console.log('✅ Follow-ups refreshed successfully');
-      }
-    } catch (err) {
-       ENV === 'dev'&&console.error('❌ Failed to fetch followups:', err);
-      setFollowupData([]);
-    } finally {
-      handleLastsync();
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
+  } catch (err) {
+    console.error('❌ Followup fetch error:', err);
+    setFollowupData([]);
+  } finally {
+    handleLastsync();
+    setLoading(false);
+    setRefreshing(false);
+  }
+};
   // Main fetch followups function
   const fetchFollowups = useCallback(async (isRefresh = false) => {
     // If we're in search mode and have preloaded data, use it instead of fetching

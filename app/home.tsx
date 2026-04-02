@@ -2218,92 +2218,116 @@ const invalidateDashboardCache = async () => {
   }
 };
  
+// 🔥 Toggle this when backend is ready
+const USE_MOCK_DASHBOARD = true;
+
 const fetchDashboardData = async ({
   filter,
-  startDate,
-  endDate,
-  specificDate,
-  isRefresh = false
 }: {
   filter: string;
-  startDate?: string | null;
-  endDate?: string | null;
-  specificDate?: string | null;
-  isRefresh?: boolean;
 }): Promise<DashboardData> => {
   try {
-    // Invalidate cache if this is a refresh
-    if (isRefresh) {
-      await invalidateDashboardCache();
-    }
- 
-    const accessToken = await getValidAccessToken();
-    const userProfile = await AsyncStorage.getItem('userProfile');
-    if (!userProfile) throw new Error('User profile not found');
- 
-    const { UserId } = JSON.parse(userProfile);
- 
-    let payload: any = { UserId };
- 
-    if (filter === 'Custom') {
-      if (specificDate) {
-        payload.FilterDate = specificDate;
-      } else if (startDate && endDate) {
-        payload.FilterDate = startDate;
-        payload.FilterEndRange = endDate;
-      } else {
-        throw new Error('Invalid custom date range');
-      }
-    } else {
-      payload.FilterDate = filter.toUpperCase();
-    }
- 
-      ENV === 'dev'&&console.log('[📊 DASHBOARD] Sending payload:', payload);
-      ENV === 'dev'&&console.log('[📊 DASHBOARD] Using token:', accessToken);
-    logAsyncStorage();
+    // ================= GET STORED DATA =================
+    const profileRaw = await AsyncStorage.getItem('userProfile');
+    if (!profileRaw) throw new Error('User profile not found');
 
-    // sendLog("info",payload);
-   
- 
-    // Fetch both dashboard data and test rides count
-    const [dashboardResponse] = await Promise.all([
-      fetch(`${API_BASE}/api/data/userDashboard`, {
+    const parsedProfile = JSON.parse(profileRaw);
+
+    const username = parsedProfile.UserName;
+    const dealerCode = parsedProfile.UserId;
+
+    // ⚠️ IMPORTANT: make sure you stored this during login
+    const branchCode = await AsyncStorage.getItem('locationCode');
+    const token = await AsyncStorage.getItem('authToken');
+
+    if (!branchCode) {
+      console.warn('⚠️ branchCode missing');
+    }
+
+    // ================= FILTER MAPPING =================
+    const filterMap: Record<string, string> = {
+      Today: 'T',
+      Week: 'CW',
+      Month: 'CM',
+      Custom: 'C',
+    };
+
+    const filterType = filterMap[filter] || 'T';
+
+    let data;
+
+    // ================= MOCK DATA =================
+    if (USE_MOCK_DASHBOARD) {
+      await new Promise(res => setTimeout(res, 600));
+
+      data = {
+        isSuccess: true,
+        messageList: [],
+        errorList: [],
+        responseData: {
+          totalEnquiries: 5,
+          totalTestDrives: 5,
+          totalFollowUps: 3,
+          totalBookings: 4,
+          totalRetail: 10,
+          totalOverdueFollowUps: 1,
+          totalOpenOpportunities: 7,
+        },
+      };
+
+      console.log('🧪 Using MOCK dashboard');
+    }
+
+    // ================= REAL API =================
+    else {
+      console.log('📡 Calling Dashboard API');
+
+      const response = await fetch(`${API_BASE}/dashboard`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
+          client_id: 'YOUR_CLIENT_ID',
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(payload),
-      }),
-      // fetchTestRidesCount({ filter, startDate, endDate, specificDate })
-    ]);
- 
-    if (!dashboardResponse.ok) throw new Error(`HTTP error! Status: ${dashboardResponse.status}`);
-    const result = await dashboardResponse.json();
- 
-    if (!result || result.StatusCode !== 200) {
-      throw new Error('No dashboard data found');
+        body: JSON.stringify({
+          userName: username,
+          dealerCode: dealerCode,
+          branchCode: branchCode,
+          filterType: filterType,
+          fromDate: null,
+          toDate: null,
+        }),
+      });
+
+      data = await response.json();
     }
-    await storeFullDashboardData(result);
- 
- 
-   
- 
+
+    // ================= ERROR HANDLING =================
+    if (!data?.isSuccess) {
+      const errorMsg =
+        data?.errorList?.[0]?.message || 'Dashboard API failed';
+      throw new Error(errorMsg);
+    }
+
+    const res = data.responseData;
+
+    // ================= MAP RESPONSE =================
     const parsed: DashboardData = {
-      testRideCount: result.totalTestDrive ?? 0, // Use the filtered count from test rides API
-      followUpCount: result.totalFollowUp ?? 0,
-      bookingCount: result.totalBookings ?? 0,
-      retailCount: result.totalPurchase ?? 0,
-      overdueFollowUps: result.totalOldFollowUp ?? 0,
-      expiringEdrives: result.totalExpiringEdrives ?? 0,
-      totalOpenOpp: result.totalOpenOpp ?? 0,
-      opportunitySources: result.OpportunitySources || {}
+      testRideCount: res?.totalTestDrives ?? 0,
+      followUpCount: res?.totalFollowUps ?? 0,
+      bookingCount: res?.totalBookings ?? 0,
+      retailCount: res?.totalRetail ?? 0,
+      overdueFollowUps: res?.totalOverdueFollowUps ?? 0,
+      expiringEdrives: 0, // not provided in API
+      totalOpenOpp: res?.totalOpenOpportunities ?? 0,
     };
- 
+
+    console.log('📊 Dashboard parsed:', parsed);
+
     return parsed;
+
   } catch (error) {
-    console.error('Dashboard fetch error:', error);
-    // sendLog("error", error);
+    console.error('🚨 Dashboard fetch error:', error);
     throw error;
   }
 };
@@ -2364,7 +2388,6 @@ const loadDashboard = useCallback(async (isRefresh = false) => {
   try {
     const data = await fetchDashboardData({
       filter,
-      isRefresh,
       ...(filter === 'Custom' && dateRange
         ? {
             startDate: dateRange.startDate,
